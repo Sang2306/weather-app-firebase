@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Weather4Cast</title>
+    <script src="https://www.gstatic.com/firebasejs/7.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.0.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.0.0/firebase-database.js"></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+    <!-- font awesome -->
+    <link rel="icon" href="./icon/favicon.ico">
+    <link rel="stylesheet" href="./static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
+    <!-- Chart js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+    <!-- Leaflet library -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+        integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+        crossorigin="" />
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+        integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+        crossorigin=""></script>
+    <!-- Select 2 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/i18n/vi.js"></script>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="row bg-info text-light title-bar">
+            <div class="col text-center">
+                <div class="row no-gutters align-items-center">
+                    <div class="col-2">
+                        <img src="./icon/weather.svg" alt="weather-icon" class="rounded icon">
+                    </div>
+                    <div class="col" style="font-weight: bold;">
+                        WEATHER4CAST
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row my-2 align-items-center">
+            <div class="my-2 col-sm-12 col-md-6">
+                <div class="input-group">
+                    <select id="city" class="custom-select"></select>
+                    <script>
+                        $('#city').select2({
+                            language: 'vi'
+                        });
+                    </script>
+                </div>
+            </div>
+            <div class="my-2 col-sm-12 col-md-6">
+                <div class="d-inline-flex">
+                    <button type="button" id="delete" class="btn btn-sm btn-danger">
+                        <i class="fa fa-trash" aria-hidden="true"></i>
+                        Xóa
+                    </button>
+                    <button type="button" data-toggle="modal" data-target="#addLocation"
+                        class="btn btn-sm btn-primary mx-2">
+                        <i class="fa fa-plus" aria-hidden="true"></i>
+                        Thêm địa điểm
+                    </button>
+                    <button class="btn btn-sm btn-success mx-2" id="update">
+                        <i class="fa fa-refresh" aria-hidden="true"></i>
+                        Làm mới
+                    </button>
+                    <button class="btn btn-sm btn-light" id="current-loc" type="button" title="Vị trí của tôi?">
+                        <img src="./icon/ic-nearest-button-72-px.svg" style="width: 24px; height: 24px;" alt="gps">
+                        <small>Vị trí hiện tại</small>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="row my-2">
+            <div class="my-2 col-sm-12 col-md-6">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <label class="input-group-text" for="selectDate">Thời gian dự báo: </label>
+                    </div>
+                    <select class="custom-select" id="selectDate"></select>
+                </div>
+            </div>
+            <div class="my-2 col-sm-12 col-md-6">
+                <h4 id="date"></h4>
+            </div>
+        </div>
+        <div class="row my-2">
+            <div class="col-sm-12 col-md m-1 text-center">
+                THÔNG TIN THỜI TIẾT HIỆN TẠI
+            </div>
+        </div>
+        <div class="row my-2">
+            <!-- <div class="col-sm-12 col-md m-1 shadow-sm">
+                <div class="row align-items-center no-gutters">
+                    <div class="col current-temp"><img src="./icon/_temp.svg" alt=""></div>
+                    <div class="col text-center current-temp-number" style="font-size: 30px"></div>
+                </div>
+            </div> -->
+            <div class="col-sm-12 col-md m-1 shadow-sm rounded">
+                <div class="row align-items-center no-gutters">
+                    <div class="col current-rain"><img src="" alt=""></div>
+                    <div class="col text-center current-rain-status" style="font-size: 20px"></div>
+                    <div class="col text-right current-temp-number" style="font-size: 25px; font-family: mywebdigitalfont;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row my-2">
+            <div class="col-sm-12 col-md m-1 shadow-sm rounded">
+                <div class="row align-items-center no-gutters">
+                    <div class="col current-humidity"><img src="./icon/humidity.svg" alt=""></div>
+                    <div class="col text-right current-humidity-number" style="font-size: 25px; font-family: mywebdigitalfont;"></div>
+                </div>
+            </div>
+            <div class="col-sm-12 col-md m-1 shadow-sm rounded">
+                <div class="row align-items-center no-gutters">
+                    <div class="col current-wind"><img src="./icon/wind.svg" alt=""></div>
+                    <div class="col text-right">
+                        <div class="current-wind-number" style="font-size: 25px; font-family: mywebdigitalfont;"></div>
+                        <div class="current-wind-description"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <a class="carousel-control-prev" href="#carouselControls" role="button" data-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Previous</span>
+                </a>
+                <a class="carousel-control-next" href="#carouselControls" role="button" data-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Next</span>
+                </a>
+            </div>
+        </div>
+        <div id="carouselControls" class="carousel slide" data-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <div class="row my-2">
+                        <div class="col text-center">
+                            <span class="d-inline-block" id="message-temp"></span>
+                        </div>
+                    </div>
+                    <div class="row my-2">
+                        <div class="col">
+                            <canvas id="tempChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="row my-2 justify-content-center">
+                        <div class="col text-center">
+                            <button class="btn btn-light" type="button" data-toggle="collapse"
+                                data-target="#collapseTemp" aria-expanded="false" aria-controls="collapseTemp">
+                                Hiển thị dạng thẻ <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row collapse" id="collapseTemp">
+                        <div class="col shadow">
+                            <div class="allTemperatures"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div class="row my-2">
+                        <div class="col text-center">
+                            <span class="d-inline-block" id="message-humidity"></span>
+                        </div>
+                    </div>
+                    <div class="row my-2">
+                        <div class="col">
+                            <canvas id="humidityChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="row my-2 justify-content-center">
+                        <div class="col text-center">
+                            <button class="btn btn-light" type="button" data-toggle="collapse"
+                                data-target="#collapseHumid" aria-expanded="false" aria-controls="collapseHumid">
+                                Hiển thị dạng thẻ <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row collapse" id="collapseHumid">
+                        <div class="col shadow">
+                            <div class="allHumidities"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div class="row my-2">
+                        <div class="col text-center">
+                            <span class="d-inline-block" id="message-wind"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <canvas id="windChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="row my-2 justify-content-center">
+                        <div class="col text-center">
+                            <button class="btn btn-light" type="button" data-toggle="collapse"
+                                data-target="#collapseWind" aria-expanded="false" aria-controls="collapseWind">
+                                Hiển thị dạng thẻ <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row collapse" id="collapseWind">
+                        <div class="col shadow">
+                            <div class="allWinds"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            $('.carousel').carousel({
+                interval: 300000 //5 minutes
+            })
+        </script>
+        <div class="row">
+            <div class="col">
+                <button class="btn btn-primary rounded" id="scrollTop" title="Lên đầu trang">
+                    <i class="fa fa-arrow-up" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <form action="#">
+        <div class="modal fade" id="addLocation" tabindex="-1" role="dialog" aria-labelledby="addLocationTilte"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="addLocationTilte">
+                            <i class="fa fa-location-arrow" aria-hidden="true"></i>
+                            Thêm địa điểm
+                        </h2>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="locatename">Tên địa điểm</span>
+                            </div>
+                            <input type="text" class="form-control" id="locationName" aria-describedby="locatename"
+                                required>
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="locateid">ID địa điểm</span>
+                            </div>
+                            <input type="text" class="form-control" id="locationID" aria-describedby="locateid"
+                                required>
+                        </div>
+                        <label for="mapid">
+                            <span> click <i class="fa fa-map-marker" aria-hidden="true"></i> vào địa điểm</span>
+                        </label>
+                        <div class="row my-2 align-items-center">
+                            <div class="col no-gutters">
+                                <li id="lat">Lat</li>
+                            </div>
+                            <div class="col no-gutters">
+                                <li id="long">Long</li>
+                            </div>
+                            <div class="col no-gutters text-center">
+                                <button class="btn btn-light" id="gpsBtn" type="button" title="Vị trí của tôi?">
+                                    <img src="./icon/gps.svg" class="img-fluid" alt="gps">
+                                    <small>Vị trí hiện tại</small>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div id="mapid"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <i class="notify" style="color: red"></i>
+                        <button class="btn btn-primary" id="addLocationBtn" data-dismiss="modal">OK</button>
+                        <button class="btn btn-danger" data-dismiss="modal">Hủy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <script src="./app.js"></script>
+    <script src="./helper.js"></script>
+    <script src="./use-leaflet-map.js"></script>
+</body>
+<div class="container">
+    <div class="row">
+        <div class="col p-2 text-center bg-info text-light">
+            &#169; 2019<br>
+            Dữ liệu được cung cấp bởi <a class="text-light" href="http://openweathermap.org/">openweathermap.org</a>
+        </div>
+    </div>
+</div>
+
+</html>
