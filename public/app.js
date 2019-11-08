@@ -6,13 +6,13 @@ var date = now.getDate() + "-" + (now.getMonth() + 1) + "-" + now.getFullYear();
 // Firebase config and const are declared here
 
 const firebaseConfig = {
-    apiKey: "AIzaSyC3BM-0x5cHes126PzUV1hvtuCpgqwDv8c",
+    apiKey: "your_api_key",
     authDomain: "weather4cast-45202.firebaseapp.com",
     databaseURL: "https://weather4cast-45202.firebaseio.com",
-    projectId: "weather4cast-45202",
-    storageBucket: "weather4cast-45202.appspot.com",
-    messagingSenderId: "909159408530",
-    appId: "1:909159408530:web:8e2176ae061f834225d74b",
+    projectId: "your",
+    storageBucket: "your_storage_bucket",
+    messagingSenderId: "your",
+    appId: "your_app_id",
     measurementId: "G-ZXK62L16JS"
 };
 firebase.initializeApp(firebaseConfig);
@@ -20,7 +20,7 @@ var firestore = firebase.firestore();
 
 
 // Api key for openweather API call
-const API_KEY = "257f1b36751ce1d3a3ec9eba954619d9";
+const API_KEY = "your_open_weather_apikey";
 
 
 // listen for changing city on firebase
